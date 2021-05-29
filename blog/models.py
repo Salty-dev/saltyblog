@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 from ckeditor_uploader.fields import RichTextUploadingField
+from taggit.managers import TaggableManager
 
 
 # creating model manager
@@ -30,6 +31,8 @@ class Post(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+
+    tags = TaggableManager()
 
     class Meta:
         ordering = ('-publish',)
