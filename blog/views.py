@@ -3,6 +3,7 @@ from .models import Post
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from taggit.models import Tag
 from django.db.models import Count
+from django.db.models import Q
 
 
 def post_list(request, tag_slug=None):
@@ -14,6 +15,11 @@ def post_list(request, tag_slug=None):
         tag = get_object_or_404(Tag, slug=tag_slug)
         posts = posts.filter(tags__in=[tag])
     
+    # search
+    query = request.GET.get("q")
+    if query:
+        posts=Post.published.filter(Q(title__icontains=query) | Q(tags__name__icontains=query)).distinct()
+
     # paginator
     paginator = Paginator(posts, 10)  # 10 posts in each page
     page =request.GET.get('page')
