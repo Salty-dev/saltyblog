@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from .models import Post
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from taggit.models import Tag
+from django.db.models import Count
+
 
 def post_list(request, tag_slug=None):
     posts = Post.published.all()
@@ -28,4 +30,10 @@ def post_list(request, tag_slug=None):
 
 def post_detail(request, post):
     post = get_object_or_404(Post, slug=post, status='published')
-    return render(request, 'post_detail.html', {'post':post})
+
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags','-publish')[:6]
+    
+    return render(request, 'post_detail.html', {'post':post, 'similar_posts':similar_posts})
